@@ -1,42 +1,66 @@
 # Procesando datos con sklearn
 
-## Descripción del Proyecto
-Este proyecto realiza la preparación y transformación de datos utilizando `pandas` y `sklearn`. Se trabaja con un dataset que contiene información sobre individuos, incluyendo su género y profesión, y se aplican técnicas de preprocesamiento como mapeo de valores categóricos y codificación one-hot.
+Este repositorio contiene un pipeline de preprocesamiento de datos utilizando `pandas` y `scikit-learn`. El objetivo principal es limpiar y transformar un conjunto de datos con información sobre individuos, incluyendo su edad, género y ocupación.
 
-## Pasos Realizados
+## Instalación
 
-### 1. Carga de Datos
-El dataset es cargado en un DataFrame de `pandas` para su manipulación.
+Antes de ejecutar el código, asegúrate de tener instaladas las siguientes bibliotecas:
 
-### 2. Transformación de Género
-Se convierte la columna `gender` de valores categóricos ('M', 'F') a valores numéricos usando un diccionario:
-```python
-gender_dict = {"M": 0, "F": 1}
-df["gender"] = [gender_dict[g] for g in df["gender"]]
+```bash
+pip install pandas scikit-learn
 ```
-Esto facilita el uso del dato en modelos de Machine Learning.
 
-### 3. Codificación One-Hot para la Variable `job`
-Se aplica `OneHotEncoder` de `sklearn` para transformar la columna `job`, generando variables dummy para cada categoría:
+## Descripción del Pipeline
+
+El proceso de preprocesamiento incluye los siguientes pasos:
+
+1. **Eliminación de la columna `name`**: Se elimina esta columna ya que no es relevante para el análisis.
+2. **Imputación de valores faltantes en `age`**: Se reemplazan los valores faltantes con la media de la columna `age`.
+3. **Codificación numérica de `gender`**: Se transforma la variable categórica en valores numéricos (`M` → 0, `F` → 1).
+4. **Codificación one-hot de `job`**: Se convierten las categorías de ocupación en variables binarias.
+
+## Implementación
+
+El código se organiza en dos enfoques:
+
+1. **Preprocesamiento manual**:
+    - Se utilizan `pandas` y `scikit-learn` para transformar los datos paso a paso.
+
+2. **Implementación con Clases Personalizadas**:
+    - Se crean clases personalizadas (`BaseEstimator`, `TransformerMixin`) para modularizar cada paso del preprocesamiento:
+      - `NameDropper`: Elimina la columna `name`.
+      - `AgeImputer`: Imputa los valores faltantes en `age` con la media.
+      - `FeatureEncoder`: Aplica one-hot encoding a la columna `job`.
+
+## Uso
+
 ```python
-from sklearn.preprocessing import OneHotEncoder
+import pandas as pd
+from sklearn.pipeline import Pipeline
 
-encoder = OneHotEncoder()
-matrix = encoder.fit_transform(df[["job"]]).toarray()
+# Datos de ejemplo
+data = {
+    'name': ['John', 'Anna', 'Peter', 'Linda'],
+    'age': [23, 36, None, 26],
+    'gender': ['M', 'F', 'M', 'F'],
+    'job': ['student', 'teacher', 'developer', 'nurse']
+}
 
-column_names = encoder.get_feature_names_out(["job"])
-df_encoded = pd.DataFrame(matrix, columns=column_names)
-df = pd.concat([df, df_encoded], axis=1)
-df.drop(columns=["job"], inplace=True)
+df = pd.DataFrame(data)
+
+# Aplicar transformaciones
+pipeline = Pipeline([
+    ('dropper', NameDropper()),
+    ('imputer', AgeImputer()),
+    ('encoder', FeatureEncoder())
+])
+
+df_transformed = pipeline.fit_transform(df)
+print(df_transformed)
 ```
-Este paso permite que la variable categórica sea utilizada en modelos estadísticos y de Machine Learning sin sesgos arbitrarios.
 
-## Requisitos
-- Python 3.x
-- Pandas
-- Scikit-learn
+## Contribución
 
-## Ejecución
-1. Instala las dependencias con `pip install pandas scikit-learn`.
-2. Ejecuta el script en Jupyter Notebook o un entorno de Python compatible.
+Si deseas contribuir, abre un issue o envía un pull request con mejoras o nuevas funcionalidades.
+
 
